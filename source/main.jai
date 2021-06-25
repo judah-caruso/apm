@@ -1,5 +1,5 @@
 NAME    :: "pm";
-VERSION :: "0.0.1a";
+VERSION :: "0.0.1b";
 #placeholder DATE;
 
 root_directory: string = ---;
@@ -191,7 +191,7 @@ RUN_PROFILER := false;
                 DEVELOPER = it[0] != #char "!";
 
             case "test"; #through;
-            case "!test"; 
+            case "!test";
                 RUN_TESTS = it[0] != #char "!";
 
             case "profile"; #through;
@@ -210,6 +210,7 @@ Flags:
     FAST         :: %%
     RUN_TESTS    :: %%
     RUN_PROFILER :: %%
+
 END, DEVELOPER, FAST, RUN_TESTS, RUN_PROFILER);
 
     build_directory :: "output/";
