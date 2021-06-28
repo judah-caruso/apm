@@ -29,10 +29,10 @@ main :: () {
     root_directory = get_working_directory();
 
     runner: (args: ..string) -> bool, string;
+
     if command == {
         case "new"   ; runner = new_project;
         case "get"   ; runner = get_library;
-        case "run"   ; runner = run_project;
         case "build" ; runner = build_project;
 
         case "help";
@@ -138,21 +138,6 @@ build_project :: (arguments: ..string) -> bool, string {
     return true, stdout;
 }
 
-run_project :: (arguments: ..string) -> bool, string {
-    if !valid_project_directory(root_directory) return false, "not in a valid project directory!";
-
-    // ok, code, stdout, stderr := os_run_command(..["jai", "first.jai"], working_directory = root_directory, capture_and_return_output = true);
-    // if !ok || code != 0 {
-    //     return false, tprint("build failed with code %! Output:\n%", code, stderr);
-    // }
-
-    // if stdout.count print(stdout);
-
-    // ok, code, stdout, stderr = os_run_command()
-
-    return false, "unable to run project (not implemented)";
-}
-
 print_usage :: () {
     print(#string END
 %1 version %2
@@ -161,7 +146,6 @@ Usage:
     %1 new [name] <directory>                   creates a new project
     %1 get [url] <import name>                  fetches an external library (via git)
     %1 build <compiler args>                    builds the project
-    %1 run <compiler args> -- <program args>    builds the project and runs the output executable
 
     END, NAME, VERSION);
 }

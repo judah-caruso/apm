@@ -9,8 +9,7 @@ After adding `apm` to your PATH:
 ```bash
 apm new some_project                      # Creates a new project
 apm get https://github.com/person/library # Fetches an external library
-apm build fast dev                        # Builds the project with the compiler arguments "fast" and "dev"
-apm run debug -- "Hello, World"           # Runs the project with the compiler argument "debug" and the program argument "Hello, World"
+apm build fast dev                        # Builds the project, passing "fast" and "dev" to the compiler
 apm help                                  # Prints more information about APM
 ```
 
@@ -23,4 +22,4 @@ jai first.jai
 
 # License
 
-[Zlib](license.text)
+[zlib](license.text)
