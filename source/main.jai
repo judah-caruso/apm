@@ -1,6 +1,5 @@
-NAME    :: "pm";
-VERSION :: "0.0.1b";
-#placeholder DATE;
+NAME    :: "apm";
+VERSION :: "0.0.2";
 
 root_directory: string = ---;
 separator: string = ---;
@@ -156,15 +155,15 @@ run_project :: (arguments: ..string) -> bool, string {
 
 print_usage :: () {
     print(#string END
-%1 version %2 (%3)
+%1 version %2
 
 Usage:
     %1 new [name] <directory>                   creates a new project
-    %1 get [url] <import name>                  fetches an external (git) library
-    %1 run <compiler args> -- <program args>    runs the project (builds if necessary)
+    %1 get [url] <import name>                  fetches an external library (via git)
     %1 build <compiler args>                    builds the project
+    %1 run <compiler args> -- <program args>    builds the project and runs the output executable
 
-    END, NAME, VERSION, DATE);
+    END, NAME, VERSION);
 }
 
 TEMPLATE_MAIN :: #string END

@@ -8,13 +8,12 @@
 
     target.output_type = .EXECUTABLE;
     target.output_path = build_directory;
-    target.output_executable_name = "pm";
+    target.output_executable_name = "apm";
 
     workspace := compiler_create_workspace();
     set_build_options(target, workspace);
 
     add_build_file("source/main.jai", workspace);
-    add_build_string("DATE :: \"today\";", workspace);
 }
 
 #import "File";
