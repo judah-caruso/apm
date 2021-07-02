@@ -1,5 +1,5 @@
 NAME    :: "apm";
-VERSION :: "0.0.3";
+VERSION :: "0.0.4";
 
 root_directory: string = ---;
 separator: string = ---;
