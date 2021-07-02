@@ -1,5 +1,5 @@
 NAME    :: "apm";
-VERSION :: "0.0.2";
+VERSION :: "0.0.3";
 
 root_directory: string = ---;
 separator: string = ---;
@@ -32,11 +32,16 @@ main :: () {
 
     if command == {
         case "new"   ; runner = new_project;
-        case "get"   ; runner = get_library;
+        case "get"   ; runner = get_module;
         case "build" ; runner = build_project;
+        case "update"; runner = update_module;
 
         case "help";
             print_usage();
+            return;
+
+        case "version";
+            print("% version %\n", NAME, VERSION);
             return;
 
         case;
@@ -85,36 +90,105 @@ new_project :: (arguments: ..string) -> bool, string {
     return true, "";
 }
 
-get_library :: (arguments: ..string) -> bool, string {
-    if arguments.count <= 0 return false, "expected library URL!";
+get_module :: (arguments: ..string) -> bool, string {
+    if !valid_project_directory(root_directory) return false, "not in a valid project directory!";
+    if arguments.count <= 0 return false, "expected module URL!";
 
-    if !file_exists(tprint("%1%2first.jai", root_directory, separator)) {
-        return false, tprint("% is not a valid project directory!", root_directory);
-    }
+    module_uri      := arguments[0];
+    module_dir_name := ifx arguments.count <= 1 then "" else arguments[1];
+    module_dir      := tprint("%1%2vendor", root_directory, separator);
 
-    library_uri      := arguments[0];
-    library_dir_name := ifx arguments.count <= 1 then "" else arguments[1];
-    library_dir      := tprint("%1%2vendor", root_directory, separator);
-
-    if !make_directory_if_it_does_not_exist(library_dir) {
+    if !make_directory_if_it_does_not_exist(module_dir) {
         return false, "unable to make vendor directory!";
     }
 
-    print("Fetching library: % %\n", library_uri, ifx library_dir_name.count then tprint("(%)", library_dir_name) else "");
+    print("Fetching module: % %\n", module_uri, ifx module_dir_name.count then tprint("(%)", module_dir_name) else "");
 
     command: [4]string = ---;
     command[0] = "git";
     command[1] = "clone";
-    command[2] = library_uri;
-    command[3] = library_dir_name;
+    command[2] = module_uri;
+    command[3] = module_dir_name;
 
-    ok, code, stdout, stderr := os_run_command(..command, working_directory = library_dir, capture_and_return_output = true);
+    ok, code, stdout, stderr := os_run_command(..command, working_directory = module_dir, capture_and_return_output = true);
     if !ok || code != 0 {
         return false, tprint("operation failed with code %! Output:\n%", code, stderr);
     }
 
     if stdout.count print(stdout);
     print("Fetch successful!\n");
+    return true, "";
+}
+
+update_module :: (arguments: ..string) -> bool, string {
+    if !valid_project_directory(root_directory) return false, "not in a valid project directory!";
+    if arguments.count <= 0 return false, "expected module name!";
+
+    module: string = ---;
+    force := false;
+
+    arg := arguments[0];
+    if arg[0] == #char "-" {
+        if arg == "-f" {
+            force = true;
+        }
+        else {
+            return false, tprint("unknown option '%'", arg);
+        }
+
+        if arguments.count < 2 {
+            return false, "expected module name!";
+        }
+
+        module = arguments[1];
+    }
+    else {
+        module = arg;
+    }
+
+    module_dir := tprint("vendor/%", module); // @Todo(Judah): Should eventually take a 'module directory name' argument so we don't hardcode 'vendor'
+    if !directory_exists(module_dir) {
+        return false, tprint("module directory for '%' doesn't exist!", module);
+    }
+
+    full_path := tprint("%/%", get_working_directory(), module_dir);
+    if !set_working_directory(full_path) {
+        return false, tprint("unable to move to directory: %", full_path);
+    }
+
+    print("Updating module: % %\n", module, ifx force "(forced)" else "");
+
+    ok     : bool   = ---;
+    code   : int    = ---;
+    stdout : string = ---;
+    stderr : string = ---;
+
+    command: [4]string;
+    if force {
+        command[0] = "git";
+        command[1] = "reset";
+        command[2] = "--hard";
+        command[3] = "HEAD";
+
+        ok, code, stdout, stderr = os_run_command(..command, working_directory = full_path, capture_and_return_output = true);
+        if !ok || code != 0 {
+            return false, tprint("operation failed with code %! Output:\n%", code, stderr);
+        }
+
+        command[3] = "";
+    }
+
+    // @Note(Judah): This might not be the best command to do a "safe update." 
+    command[0] = "git";
+    command[1] = "pull";
+    command[2] = "-ff";
+
+    ok, code, stdout, stderr = os_run_command(..command, working_directory = full_path, capture_and_return_output = true);
+    if !ok || code != 0 {
+        return false, tprint("operation failed with code %! Output:\n%", code, stderr);
+    }
+
+    if stdout.count print(stdout);
     return true, "";
 }
 
@@ -138,14 +212,33 @@ build_project :: (arguments: ..string) -> bool, string {
     return true, stdout;
 }
 
+#if OS == .WINDOWS {
+    directory_exists :: (directory: string, allocator := context.allocator) -> bool {
+        wide_dir := utf8_to_wide(directory, allocator);
+        attributes := GetFileAttributesW(xx wide_dir);
+        free(wide_dir, allocator);
+        return (attributes != INVALID_FILE_ATTRIBUTES &&
+                attributes & FILE_ATTRIBUTE_DIRECTORY);
+    }
+}
+else #if OS == .LINUX {
+    directory_exists :: (directory: string, allocator := context.allocator) -> bool {
+        dir_name_c := temp_c_string(directory); // @Note(Judah): Should actually be 'to_c_string' but it doesn't take an allocator yet.
+        // defer free(dir_name_c, allocator);
+        stats: stat_t;
+        return stat(dir_name_c, *stats) == 0 && S_ISDIR(stats.st_mode);
+    }
+}
+
 print_usage :: () {
     print(#string END
 %1 version %2
 
 Usage:
-    %1 new [name] <directory>                   creates a new project
-    %1 get [url] <import name>                  fetches an external library (via git)
-    %1 build <compiler args>                    builds the project
+    %1 new [name] <directory>     creates a new project
+    %1 get [url] <import name>    fetches an external module (via git)
+    %1 update [-f] <module name>  updates a module, -f will forcibly apply the update.
+    %1 build <compiler args>      builds the project
 
     END, NAME, VERSION);
 }
@@ -242,3 +335,11 @@ _END;
 #import "String";
 #import "Process";
 #import "File_Utilities";
+
+#if OS == .WINDOWS {
+    #import "Windows";
+    #import "Windows_Utf8";
+}
+else #if OS == .LINUX {
+    #import "POSIX";
+}
