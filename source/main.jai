@@ -1,5 +1,5 @@
-NAME    :: "apm";
-VERSION :: "0.0.4";
+NAME :: "apm";
+#placeholder VERSION;
 
 root_directory: string = ---;
 separator: string = ---;
@@ -309,8 +309,6 @@ END, DEVELOPER, FAST, RUN_TESTS, RUN_PROFILER);
     workspace := compiler_create_workspace();
     set_build_options(target, workspace);
 
-    add_build_file("source/main.jai", workspace);
-
     // Platform category defines
     add_build_string(tprint("PLATFORM_MOBILE  :: %%;", OS == .IOS || OS == .ANDROID), workspace);
     add_build_string(tprint("PLATFORM_CONSOLE :: %%;", OS == .PS4 || OS == .PS5 || OS == .XBOX || OS == .NN_SWITCH), workspace);
@@ -321,6 +319,8 @@ END, DEVELOPER, FAST, RUN_TESTS, RUN_PROFILER);
     add_build_string(tprint("DEVELOPER    :: %%;", DEVELOPER), workspace);
     add_build_string(tprint("RUN_TESTS    :: %%;", RUN_TESTS), workspace);
     add_build_string(tprint("RUN_PROFILER :: %%;", RUN_PROFILER), workspace);
+
+    add_build_file("source/main.jai", workspace);
 }
 
 #import "File";

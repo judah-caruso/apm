@@ -13,10 +13,21 @@
     workspace := compiler_create_workspace();
     set_build_options(target, workspace);
 
+    version := "0.0.5";
+    ok, _, output := os_run_command(...[ "git", "rev-parse", "--short", "HEAD" ], capture_and_return_output = true);
+    if ok {
+        output.count -= 1;
+        version = tprint("% (%)", version, output);
+    }
+
+    version_string := tprint("VERSION :: \"%\";", version);
+    add_build_string(version_string, workspace);
+
     add_build_file("source/main.jai", workspace);
 }
 
 #import "File";
 #import "Basic";
 #import "String";
+#import "Process";
 #import "Compiler";
