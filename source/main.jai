@@ -319,7 +319,7 @@ print_usage :: (invalid_command := "") {
 %1 version %2
 %3
 Usage:
-    %1 new [name] <directory>      creates a new project
+    %1 new [name] <directory>      creates a new project and skeleton
     %1 get [url] <import name>     fetches an external module (via git)
     %1 update [-f] <module name>   updates a module, -f will forcibly apply the update
     %1 build <compiler arguments>  builds the project, passing any arguments given 
@@ -374,16 +374,17 @@ END, DEVELOPER, FAST, RUN_TESTS, RUN_PROFILER);
 
     target := get_build_options();
 
+    // Metaprogram specific options
+    target.output_type = .NO_OUTPUT;
+    set_build_options(target);
+
     import_path: [..]string;
     array_add(*import_path, ..target.import_path);
     array_add(*import_path, tprint("%%1/vendor/", #filepath));
 
-    target.import_path = import_path;
-    target.output_type = .NO_OUTPUT;
-    set_build_options(target);
-
-    target.output_type = .EXECUTABLE;
-    target.output_path = build_directory;
+    target.import_path            = import_path;
+    target.output_type            = .EXECUTABLE;
+    target.output_path            = build_directory;
     target.output_executable_name = PROJECT_NAME;
 
     workspace := compiler_create_workspace();

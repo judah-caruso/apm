@@ -1,17 +1,19 @@
 # Anti-Project Manager
 
-An anti-manager for your Jai projects.
+The anti-manager for your Jai projects.
 
 # Usage
 
 After adding `apm` to your PATH:
 
 ```bash
-apm new some_project                      # Creates a new project
-apm get https://github.com/person/library # Fetches an external library
-apm update some-module                    # Updates a local module
-apm build fast dev                        # Builds the project, passing "fast" and "dev" to the compiler
-apm help                                  # Prints more information about APM
+λ apm help
+
+λ Usage:
+    apm new [name] <directory>      creates a new project and skeleton
+    apm get [url] <import name>     fetches an external module (via git)
+    apm update [-f] <module name>   updates a module, -f will forcibly apply the update
+    apm build <compiler arguments>  builds the project, passing any arguments given
 ```
 
 # Building
